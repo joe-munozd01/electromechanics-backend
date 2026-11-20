@@ -88,8 +88,9 @@ Códigos de respuesta: **201** al crear, **400** con datos inválidos, **404** s
 
 ## Cómo ejecutar en local
 
-Requiere Docker y Docker Compose.
+Requiere Docker y Docker Compose (en Windows, Docker Desktop).
 
+**Linux:**
 ```bash
 git clone https://github.com/joe-munozd01/electromechanics-backend.git
 cd electromechanics-backend
@@ -98,8 +99,18 @@ docker compose up -d --build
 docker compose ps
 ```
 
+**Windows (PowerShell):**
+```powershell
+git clone https://github.com/joe-munozd01/electromechanics-backend.git
+cd electromechanics-backend
+copy .env.example .env
+docker compose up -d --build
+docker compose ps
+```
+
 La primera vez tarda varios minutos. Deben aparecer cinco contenedores en `running`: la base y los cuatro microservicios. Para comprobar que responden:
 
+**Linux:**
 ```bash
 curl -s localhost:8081/api/colaboradores
 curl -s localhost:8082/api/sucursales
@@ -107,13 +118,30 @@ curl -s localhost:8083/api/servicios
 curl -s localhost:8084/api/jornadas
 ```
 
-Detenerlos: `docker compose down`. Ver errores de un servicio: `docker compose logs <servicio>`.
+**Windows (PowerShell):**
+```powershell
+curl.exe -s localhost:8081/api/colaboradores
+curl.exe -s localhost:8082/api/sucursales
+curl.exe -s localhost:8083/api/servicios
+curl.exe -s localhost:8084/api/jornadas
+```
+
+También se pueden abrir esas direcciones en el navegador (`http://localhost:8081/api/colaboradores`, etc.).
+
+Detenerlos: `docker compose down`. Ver errores de un servicio: `docker compose logs <servicio>`. Estos dos comandos son iguales en Linux y Windows.
 
 También se puede ejecutar un microservicio por separado, con PostgreSQL disponible en `localhost:5432`:
 
+**Linux:**
 ```bash
 cd jornadas-ms
 ./mvnw spring-boot:run
+```
+
+**Windows (PowerShell):**
+```powershell
+cd jornadas-ms
+.\mvnw.cmd spring-boot:run
 ```
 
 ### Variables de entorno
@@ -133,11 +161,23 @@ El archivo `.env` con las credenciales no se sube al repositorio; `.env.example`
 
 Cada microservicio tiene pruebas de la capa de servicio (con el repositorio simulado con Mockito) y del controlador (con MockMvc). No necesitan base de datos.
 
+**Linux:**
 ```bash
 for s in colaboradores-ms sucursales-ms servicios-ms jornadas-ms; do
   (cd $s && ./mvnw test 2>&1 | grep -E "Tests run:|BUILD")
 done
 ```
+
+**Windows (PowerShell):**
+```powershell
+foreach ($s in "colaboradores-ms","sucursales-ms","servicios-ms","jornadas-ms") {
+  Push-Location $s
+  .\mvnw.cmd test | Select-String "Tests run:|BUILD"
+  Pop-Location
+}
+```
+
+Para un solo microservicio: `./mvnw test` en Linux o `.\mvnw.cmd test` en Windows, dentro de su carpeta.
 
 | Microservicio | Pruebas |
 |---|---|
