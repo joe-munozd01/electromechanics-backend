@@ -1,0 +1,62 @@
+x-db-env: &db-env
+  DB_HOST: postgres
+  DB_PORT: "5432"
+  DB_NAME: electromechanics
+  DB_USER: ${DB_USER}
+  DB_PASSWORD: ${DB_PASSWORD}
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: electromechanics
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d electromechanics"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  colaboradores-ms:
+    build: ./colaboradores-ms
+    ports:
+      - "8081:8081"
+    environment: *db-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  sucursales-ms:
+    build: ./sucursales-ms
+    ports:
+      - "8082:8082"
+    environment: *db-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  servicios-ms:
+    build: ./servicios-ms
+    ports:
+      - "8083:8083"
+    environment: *db-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  jornadas-ms:
+    build: ./jornadas-ms
+    ports:
+      - "8084:8084"
+    environment: *db-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

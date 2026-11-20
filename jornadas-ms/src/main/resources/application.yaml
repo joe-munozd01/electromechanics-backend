@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: jornadas-ms
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:electromechanics}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl_auto: update
+    open-in-view: false
+server:
+  port: ${PORT:8084}
+  address: 0.0.0.0
+  error:
+    include-message: always
+    include-binding-errors: always
