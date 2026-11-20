@@ -1,159 +1,119 @@
-# Electromechanics Backend
+# Electromechanics App
 
-Microservicios Spring Boot de Electromechanics App (DSY1105, Duoc UC). Atienden los datos del caso: colaboradores, sucursales, órdenes de trabajo con sus actividades, y marcaciones de jornada con GPS.
+Aplicación móvil Android para el registro de jornada con GPS y el seguimiento de tareas de mantención en terreno, conectada a microservicios Spring Boot desplegados en la nube. Asignatura DSY1105 (Desarrollo de Aplicaciones Móviles), Duoc UC.
 
-- Repositorio de la app Android: https://github.com/joe-munozd01/app-android
+**Versión:** `v2.0` (Experiencia 3)
 
 ## Integrantes
 
-| Integrante | Aportes |
+| Integrante | Aportes principales |
 |---|---|
-| Nicolás Figueroa | `jornadas-ms`, `colaboradores-ms` y `sucursales-ms`, con sus pruebas y Dockerfile |
-| José Muñoz | `servicios-ms` con sus pruebas, `docker-compose` y despliegue en Render |
+| Nicolás Figueroa | `jornadas-ms`, `colaboradores-ms` y `sucursales-ms` (con JUnit y Docker), base de Retrofit, marcación e historial conectados al backend, panel del Supervisor (aprobar horas y ver ubicación), diagramas de arquitectura |
+| José Muñoz | `servicios-ms`, `docker-compose`, login por correo con rol, Hoja de ruta, Detalle y Formulario conectados al backend, despliegue en Render, APK firmada |
+
+## Enlaces
+
+- Repositorio del backend: https://github.com/joe-munozd01/electromechanics-backend
+- Diagramas de arquitectura: rama `documents`, archivo `docs/arquitectura.md`
+- Trello: https://trello.com/invite/b/6ad24baede7497f7b1c32d21/ATTI707800078ce35328d03017c47482555eEBE071F9/electromechanics
+- APK firmada: sección **Releases** de este repositorio (`app-release.apk`)
 
 ## Tecnologías
 
-- Java 21 y Spring Boot (Web, Data JPA, Validation)
-- PostgreSQL
-- Lombok
-- JUnit 5 y Mockito
-- Docker (un contenedor por microservicio) y Docker Compose
-- Render (nube)
+- Kotlin, Jetpack Compose y Material Design 3
+- Arquitectura MVVM
+- Room (SQLite) para la autenticación y la copia local de datos
+- Retrofit y OkHttp para consumir los microservicios
+- Navigation Compose, con navegación según el rol
+- Recursos nativos: GPS, vibración, batería y mapa
+
+## Roles
+
+| Rol | Funciones | Recursos nativos |
+|---|---|---|
+| Técnico (`EMPLEADO`) | Marcar entrada y salida, hoja de ruta, cambiar el estado de un servicio, registrar actividades, historial de marcaciones | GPS, vibración, batería |
+| Supervisor (`SUPERVISOR`) | Ver las jornadas pendientes, aprobarlas y ver en el mapa dónde se marcaron | Mapa |
+
+Al iniciar sesión, la app lee el rol del usuario desde Room y abre el menú que le corresponde.
+
+## Usuarios de prueba
+
+Todos los datos son ficticios.
+
+| Rol | Correo | Contraseña |
+|---|---|---|
+| Técnico | `tecnico1@demo.cl` | `Demo1234` |
+| Técnico | `tecnico2@demo.cl` | `Demo1234` |
+| Supervisor | `supervisor@demo.cl` | `Demo1234` |
 
 ## Microservicios
 
-| Microservicio | Puerto local | Responsabilidad | URL en Render |
-|---|---|---|---|
-| `colaboradores-ms` | 8081 | Técnicos y supervisores | https://colaboradores-ms.onrender.com |
-| `sucursales-ms` | 8082 | Sucursales con sus coordenadas | https://sucursales-ms.onrender.com |
-| `servicios-ms` | 8083 | Órdenes de trabajo y actividades | https://servicios-ms.onrender.com |
-| `jornadas-ms` | 8084 | Marcaciones con GPS y aprobación de horas | https://jornadas-ms.onrender.com |
-
-Comparten una base PostgreSQL, cada uno con sus propias tablas. Al iniciar con la base vacía, `colaboradores-ms`, `sucursales-ms` y `servicios-ms` cargan datos de prueba ficticios.
-
-Render suspende los servicios gratuitos tras 15 minutos sin uso; la primera petición puede tardar cerca de un minuto en responder.
-
-## Endpoints
-
-### colaboradores-ms
-| Método | Ruta | Descripción |
+| Microservicio | URL en Render | Endpoint de prueba |
 |---|---|---|
-| GET | `/api/colaboradores?rol=` | Lista los colaboradores, opcionalmente por rol (`EMPLEADO` o `SUPERVISOR`) |
-| GET | `/api/colaboradores/{id}` | Obtiene un colaborador |
-| POST | `/api/colaboradores` | Crea un colaborador; valida RUT, nombre, correo y rol |
+| `colaboradores-ms` | https://colaboradores-ms.onrender.com | `/api/colaboradores` |
+| `sucursales-ms` | https://sucursales-ms.onrender.com | `/api/sucursales` |
+| `servicios-ms` | https://servicios-ms.onrender.com | `/api/servicios` |
+| `jornadas-ms` | https://jornadas-ms.onrender.com | `/api/jornadas` |
 
-### sucursales-ms
-| Método | Ruta | Descripción |
-|---|---|---|
-| GET | `/api/sucursales` | Lista las sucursales con sus coordenadas |
-| GET | `/api/sucursales/{id}` | Obtiene una sucursal |
-| POST | `/api/sucursales` | Crea una sucursal; valida nombre, dirección y coordenadas |
+Los servicios usan el plan gratuito de Render, que los suspende tras 15 minutos sin uso. La primera petición puede tardar cerca de un minuto en responder; la app tiene tiempos de espera de 90 segundos por ese motivo.
 
-### servicios-ms
-| Método | Ruta | Descripción |
-|---|---|---|
-| GET | `/api/servicios?idEmpleado=&estado=` | Lista las órdenes de trabajo, con filtros opcionales |
-| GET | `/api/servicios/{id}` | Obtiene una orden |
-| POST | `/api/servicios` | Crea una orden en estado `Pendiente` |
-| PUT | `/api/servicios/{id}/asignar?idEmpleado=` | Asigna un técnico a la orden |
-| PUT | `/api/servicios/{id}/estado?estado=` | Cambia el estado (`Pendiente`, `En Proceso` o `Finalizado`) |
-| GET | `/api/servicios/{id}/actividades` | Lista las actividades de una orden |
-| POST | `/api/servicios/{id}/actividades` | Registra una actividad ejecutada |
+## Cómo ejecutar
 
-### jornadas-ms
-| Método | Ruta | Descripción |
-|---|---|---|
-| POST | `/api/jornadas` | Registra una marcación de entrada o salida con sus coordenadas; queda `PENDIENTE` |
-| GET | `/api/jornadas?idEmpleado=&estado=` | Lista las marcaciones, con filtros opcionales |
-| GET | `/api/jornadas/{id}` | Obtiene una marcación |
-| PUT | `/api/jornadas/{id}/aprobar?idSupervisor=` | Aprueba una marcación |
+**Con el APK firmado**
 
-Códigos de respuesta: **201** al crear, **400** con datos inválidos, **404** si el recurso no existe y **409** si hay un duplicado (RUT, correo o dirección).
+Con el emulador encendido o el celular conectado por USB, desde la carpeta donde está el APK:
 
-## Estructura de cada microservicio
-
-```
-<servicio>/
-├── Dockerfile
-└── src/
-    ├── main/java/com/electromechanics/<servicio>/
-    │   ├── entities/      tablas (JPA)
-    │   ├── dto/           datos de entrada con sus validaciones
-    │   ├── repository/    consultas con Spring Data JPA
-    │   ├── services/      interfaz e implementación con la lógica
-    │   ├── controller/    endpoints REST
-    │   └── config/        datos de prueba iniciales
-    └── test/              pruebas con JUnit y Mockito
-```
-
-## Cómo ejecutar en local
-
-Requiere Docker y Docker Compose.
-
+**Linux:**
 ```bash
-git clone https://github.com/joe-munozd01/electromechanics-backend.git
-cd electromechanics-backend
-cp .env.example .env
-docker compose up -d --build
-docker compose ps
+~/Android/Sdk/platform-tools/adb install -r app-release.apk
 ```
 
-La primera vez tarda varios minutos. Deben aparecer cinco contenedores en `running`: la base y los cuatro microservicios. Para comprobar que responden:
-
-```bash
-curl -s localhost:8081/api/colaboradores
-curl -s localhost:8082/api/sucursales
-curl -s localhost:8083/api/servicios
-curl -s localhost:8084/api/jornadas
+**Windows (PowerShell):**
+```powershell
+& "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe" install -r app-release.apk
 ```
 
-Detenerlos: `docker compose down`. Ver errores de un servicio: `docker compose logs <servicio>`.
+Si `adb` está en el PATH, basta con `adb install -r app-release.apk` en ambos sistemas. También se puede arrastrar el archivo `.apk` a la ventana del emulador.
 
-También se puede ejecutar un microservicio por separado, con PostgreSQL disponible en `localhost:5432`:
+**Desde el código**
+1. Clonar el repositorio y abrir la carpeta en Android Studio.
+2. Esperar la sincronización de Gradle.
+3. Ejecutar en un emulador o dispositivo con Android 8.0 (API 26) o superior.
 
-```bash
-cd jornadas-ms
-./mvnw spring-boot:run
-```
+Para la marcación en el emulador, fijar una ubicación en **Extended controls → Location → Set location**.
 
-### Variables de entorno
+## Cómo probar cada funcionalidad
 
-| Variable | Descripción | Valor local por defecto |
-|---|---|---|
-| `DB_HOST` | Host de PostgreSQL | `localhost` |
-| `DB_PORT` | Puerto de PostgreSQL | `5432` |
-| `DB_NAME` | Nombre de la base | `electromechanics` |
-| `DB_USER` | Usuario | `postgres` |
-| `DB_PASSWORD` | Contraseña | `postgres` |
-| `PORT` | Puerto HTTP (en Render lo asigna la plataforma) | el de cada microservicio |
+**Técnico** (`tecnico1@demo.cl`)
+1. **Marcar jornada → MARCAR ENTRADA**: pide el permiso de ubicación, guarda la marcación en `jornadas-ms` con hora y coordenadas, y vibra.
+2. **Mi hoja de ruta**: lista los servicios asignados desde `servicios-ms`.
+3. **Detalle de servicio**: los botones se habilitan según el estado; al cambiarlo se actualiza el backend y el chip cambia de color con animación.
+4. **Registrar actividades**: el campo de detalle es obligatorio y exige al menos 10 caracteres; la actividad se guarda en `servicios-ms`.
+5. **Historial**: muestra las marcaciones del técnico y el nivel de batería.
 
-El archivo `.env` con las credenciales no se sube al repositorio; `.env.example` es la plantilla.
+**Supervisor** (`supervisor@demo.cl`)
+1. **Aprobar horas**: lista las jornadas pendientes con el nombre del técnico (desde `colaboradores-ms`).
+2. **VER UBICACIÓN**: abre el mapa en las coordenadas de la marcación.
+3. **APROBAR**: la jornada queda aprobada en `jornadas-ms` y desaparece de la lista.
 
-## Pruebas unitarias
+Si no hay conexión, la app guarda la información en Room y sigue funcionando con los datos locales.
 
-Cada microservicio tiene pruebas de la capa de servicio (con el repositorio simulado con Mockito) y del controlador (con MockMvc). No necesitan base de datos.
+## Estructura del proyecto
 
-```bash
-for s in colaboradores-ms sucursales-ms servicios-ms jornadas-ms; do
-  (cd $s && ./mvnw test 2>&1 | grep -E "Tests run:|BUILD")
-done
-```
-
-| Microservicio | Pruebas |
+| Package | Función |
 |---|---|
-| `colaboradores-ms` | 10 |
-| `sucursales-ms` | 9 |
-| `servicios-ms` | 12 |
-| `jornadas-ms` | 8 |
-
-Cada uno debe terminar con `Failures: 0, Errors: 0` y `BUILD SUCCESS`.
-
-## Despliegue en Render
-
-- Una base **PostgreSQL** y **cuatro Web Services** de tipo Docker, en la misma región.
-- Cada servicio usa su carpeta como *Root Directory*, su `Dockerfile` y la rama `develop`.
-- Las variables `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` y `DB_PASSWORD` se configuran en Render y no se suben a GitHub.
+| `data/local` | Entidades y DAO de Room |
+| `data/database` | `AppDatabase` con los datos de prueba |
+| `data/remote` | Cliente Retrofit, URLs, interfaces de las APIs y DTO |
+| `data/repository` | Une Retrofit con Room |
+| `data/session` | Usuario con la sesión iniciada y su rol |
+| `model` | Estado de cada pantalla |
+| `ui/screen` | Pantallas en Compose |
+| `ui/viewmodel` | Lógica de cada pantalla |
+| `ui/navigation` | Rutas y navegación por rol |
+| `ui/components` y `ui/theme` | Componentes reutilizables y tema Material 3 |
+| `utils` | Validación de RUT |
 
 ## Git Flow
 
-Ramas `main`, `develop`, `feature/backend/<nombre-apellido>` y `release/`. Todo cambio entra a `develop` por Pull Request y se publica en `main` con un tag de versión.
+Ramas `main`, `develop`, `feature/<capa>/<nombre-apellido>`, `release/` y `documents`. Todo cambio entra a `develop` por Pull Request y se publica en `main` con un tag de versión.
