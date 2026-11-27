@@ -10,6 +10,8 @@ public record ActividadRequest(
 
         String repuestosUtilizados,
 
-        String comentariosTecnicos
+        String comentariosTecnicos,
+
+        String fotoBase64
 ) {
 }

@@ -39,4 +39,7 @@ public class Actividad {
     @Column(nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime horaRegistro;
+
+    @Column(columnDefinition = "TEXT")
+    private String fotoBase64;
 }
