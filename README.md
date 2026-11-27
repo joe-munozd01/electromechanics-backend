@@ -58,7 +58,7 @@ Render suspende los servicios gratuitos tras 15 minutos sin uso; la primera peti
 | PUT | `/api/servicios/{id}/asignar?idEmpleado=` | Asigna un técnico a la orden |
 | PUT | `/api/servicios/{id}/estado?estado=` | Cambia el estado (`Pendiente`, `En Proceso` o `Finalizado`) |
 | GET | `/api/servicios/{id}/actividades` | Lista las actividades de una orden |
-| POST | `/api/servicios/{id}/actividades` | Registra una actividad ejecutada |
+| POST | `/api/servicios/{id}/actividades` | Registra una actividad ejecutada, con foto de evidencia opcional (`fotoBase64`, imagen JPEG en Base64) |
 
 ### jornadas-ms
 | Método | Ruta | Descripción |
