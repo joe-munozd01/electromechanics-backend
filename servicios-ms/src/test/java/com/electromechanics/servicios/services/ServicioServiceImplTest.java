@@ -92,7 +92,7 @@ class ServicioServiceImplTest {
     @Test
     void crearActividad_siElServicioNoExiste_lanzaNotFoundYNoGuarda() {
         when(servicioRepository.findById("x")).thenReturn(Optional.empty());
-        ActividadRequest request = new ActividadRequest("Cambio de contactor principal", null, null);
+        ActividadRequest request = new ActividadRequest("Cambio de contactor principal", null, null, null);
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> service.crearActividad("x", request));
@@ -105,11 +105,22 @@ class ServicioServiceImplTest {
     void crearActividad_guardaLaActividadConSuHora() {
         when(servicioRepository.findById("srv-1")).thenReturn(Optional.of(new Servicio()));
         when(actividadRepository.save(any(Actividad.class))).thenAnswer(inv -> inv.getArgument(0));
-        ActividadRequest request = new ActividadRequest("Cambio de contactor principal", "Contactor 25A", "Sin novedades");
+        ActividadRequest request = new ActividadRequest("Cambio de contactor principal", "Contactor 25A", "Sin novedades", null);
 
         Actividad resultado = service.crearActividad("srv-1", request);
 
         assertEquals("srv-1", resultado.getIdServicio());
         assertNotNull(resultado.getHoraRegistro());
+    }
+
+    @Test 
+    void crearActividad_guardaLaFotoDeEvidencia() {
+        when(servicioRepository.findById("srv-1")).thenReturn(Optional.of(new Servicio()));
+        when(actividadRepository.save(any(Actividad.class))).thenAnswer(inv -> inv.getArgument(0));
+        ActividadRequest request = new ActividadRequest("Cambio de contactor principal", null, null, "Zm90bw==");
+
+        Actividad resultado = service.crearActividad("srv-1", request);
+
+        assertEquals("Zm90bw==", resultado.getFotoBase64());
     }
 }

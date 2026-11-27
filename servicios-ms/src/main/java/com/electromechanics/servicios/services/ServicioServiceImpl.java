@@ -96,6 +96,7 @@ public class ServicioServiceImpl implements ServicioService {
                 .detalleTareaEjecutada(request.detalleTareaEjecutada().trim())
                 .repuestosUtilizados(request.repuestosUtilizados())
                 .comentariosTecnicos(request.comentariosTecnicos())
+                .fotoBase64(request.fotoBase64())
                 .horaRegistro(LocalDateTime.now())
                 .build();
         return actividadRepository.save(actividad);
